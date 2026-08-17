@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -73,14 +73,15 @@ def test_azurite_uses_free_local_default():
     assert settings.azure_storage_connection_string == ""
 
 
-def test_equal_watermark_is_a_valid_noop():
+def test_equal_watermark_with_mixed_timezones_is_a_valid_noop():
     candidate = datetime(2026, 1, 3, 12, 30)
+    stored = datetime(2026, 1, 3, 12, 30, tzinfo=timezone.utc)
     settings = Settings(database_url="")
     engine = MagicMock()
     connection = engine.begin.return_value.__enter__.return_value
     update_result = MagicMock(rowcount=0)
     select_result = MagicMock()
-    select_result.scalar_one_or_none.return_value = candidate
+    select_result.scalar_one_or_none.return_value = stored
     connection.execute.side_effect = [update_result, select_result]
 
     update_watermark(engine, settings, candidate)

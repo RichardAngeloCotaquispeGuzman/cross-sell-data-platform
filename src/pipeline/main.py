@@ -7,6 +7,7 @@ import logging
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
+from time import monotonic
 from uuid import uuid4
 
 import pandas as pd
@@ -22,7 +23,9 @@ from pipeline.extract.database import (
     update_watermark,
 )
 from pipeline.load.parquet import read_dataset_history, write_parquet
+from pipeline.logging_conf import configure_logging
 from pipeline.transform.bronze import add_ingestion_metadata
+from pipeline.transform.contracts import validate_frame
 from pipeline.transform.gold import build_gold
 from pipeline.transform.silver import build_silver
 
@@ -59,9 +62,12 @@ def _write_frames(
     layer: str,
     run_id: str,
     settings: Settings,
+    partition_date: str | None = None,
 ) -> list[str]:
     locations = []
     for dataset, frame in frames.items():
+        validate_frame(frame, layer, dataset)
+        LOGGER.info("contract_validated layer=%s dataset=%s", layer, dataset)
         locations.append(
             write_parquet(
                 frame,
@@ -69,6 +75,7 @@ def _write_frames(
                 dataset=dataset,
                 run_id=run_id,
                 settings=settings,
+                partition_date=partition_date,
             )
         )
         LOGGER.info("%s/%s rows=%s", layer, dataset, len(frame))
@@ -98,105 +105,128 @@ def run(argv: list[str] | None = None) -> list[str]:
     if args.destination:
         settings = replace(settings, destination=args.destination)
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    )
-    logging.getLogger("azure").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    configure_logging(settings.log_level)
+    run_started_at = datetime.now(timezone.utc)
+    timer_started_at = monotonic()
     run_id = (
-        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        run_started_at.strftime("%Y%m%dT%H%M%SZ")
         + "-"
         + uuid4().hex[:8]
     )
     LOGGER.info("pipeline_started run_id=%s destination=%s", run_id, settings.destination)
 
-    engine = create_neon_engine(settings)
-    current_watermark = read_watermark(engine, settings)
-    dimensions = extract_dimensions(engine, settings)
-    extraction_watermark = None if args.full_refresh else current_watermark
-    sales_increment = extract_sales(engine, settings, extraction_watermark)
-    candidate_watermark = max_sales_watermark(sales_increment)
+    engine = None
+    try:
+        engine = create_neon_engine(settings)
+        current_watermark = read_watermark(engine, settings)
+        dimensions = extract_dimensions(engine, settings)
+        extraction_watermark = None if args.full_refresh else current_watermark
+        sales_increment = extract_sales(engine, settings, extraction_watermark)
+        candidate_watermark = max_sales_watermark(sales_increment)
 
-    if sales_increment.empty and not args.force_rebuild:
-        engine.dispose()
-        LOGGER.info("pipeline_no_changes run_id=%s rows_extracted=0", run_id)
-        return []
+        if sales_increment.empty and not args.force_rebuild:
+            LOGGER.info("pipeline_no_changes run_id=%s rows_extracted=0", run_id)
+            return []
 
-    locations: list[str] = []
-    if not sales_increment.empty:
-        bronze_frames: dict[str, pd.DataFrame] = {}
-        for name, frame in dimensions.items():
-            bronze_frames[name] = add_ingestion_metadata(
-                frame,
+        locations: list[str] = []
+        if not sales_increment.empty:
+            bronze_frames: dict[str, pd.DataFrame] = {}
+            for name, frame in dimensions.items():
+                bronze_frames[name] = add_ingestion_metadata(
+                    frame,
+                    run_id=run_id,
+                    source_system="neon_postgresql",
+                    source_table=name,
+                    extract_type="full",
+                )
+            bronze_frames["ventas"] = add_ingestion_metadata(
+                sales_increment,
                 run_id=run_id,
                 source_system="neon_postgresql",
-                source_table=name,
-                extract_type="full",
+                source_table="ventas",
+                extract_type=(
+                    "full" if extraction_watermark is None else "incremental"
+                ),
+                watermark_value=current_watermark,
             )
-        bronze_frames["ventas"] = add_ingestion_metadata(
-            sales_increment,
-            run_id=run_id,
-            source_system="neon_postgresql",
-            source_table="ventas",
-            extract_type="full" if extraction_watermark is None else "incremental",
-            watermark_value=current_watermark,
-        )
-        locations.extend(_write_frames(bronze_frames, "bronze", run_id, settings))
+            locations.extend(
+                _write_frames(
+                    bronze_frames,
+                    "bronze",
+                    run_id,
+                    settings,
+                    partition_date=run_started_at.date().isoformat(),
+                )
+            )
 
-    sales_history = _deduplicate_sales(
-        read_dataset_history(
-            layer="bronze",
-            dataset="ventas",
-            settings=settings,
-        )
-    )
-    years = (
-        pd.to_datetime(sales_history["fc_movimiento"], errors="raise")
-        .dt.year.unique()
-        .tolist()
-    )
-    holidays = fetch_holidays(
-        years,
-        settings,
-        cache_dir=settings.output_dir / "_cache" / "holidays",
-    )
-    if not sales_increment.empty:
-        bronze_holidays = add_ingestion_metadata(
-            holidays,
-            run_id=run_id,
-            source_system="nager_date_api",
-            source_table="public_holidays",
-            extract_type="full",
-        )
-        locations.append(
-            write_parquet(
-                bronze_holidays,
+        sales_history = _deduplicate_sales(
+            read_dataset_history(
                 layer="bronze",
-                dataset="feriados",
-                run_id=run_id,
+                dataset="ventas",
                 settings=settings,
             )
         )
+        years = (
+            pd.to_datetime(sales_history["fc_movimiento"], errors="raise")
+            .dt.year.unique()
+            .tolist()
+        )
+        holidays = fetch_holidays(
+            years,
+            settings,
+            cache_dir=settings.output_dir / "_cache" / "holidays",
+        )
+        if not sales_increment.empty:
+            bronze_holidays = add_ingestion_metadata(
+                holidays,
+                run_id=run_id,
+                source_system="nager_date_api",
+                source_table="public_holidays",
+                extract_type="full",
+            )
+            locations.extend(
+                _write_frames(
+                    {"feriados": bronze_holidays},
+                    "bronze",
+                    run_id,
+                    settings,
+                    partition_date=run_started_at.date().isoformat(),
+                )
+            )
 
-    silver = build_silver(
-        dimensions["clientes"],
-        dimensions["destinatarios"],
-        dimensions["productos"],
-        dimensions["jerarquia"],
-        sales_history,
-        holidays,
-    )
-    locations.extend(_write_frames(silver, "silver", "current", settings))
+        silver = build_silver(
+            dimensions["clientes"],
+            dimensions["destinatarios"],
+            dimensions["productos"],
+            dimensions["jerarquia"],
+            sales_history,
+            holidays,
+        )
+        locations.extend(_write_frames(silver, "silver", "current", settings))
 
-    gold = build_gold(silver["fact_sales"], settings)
-    locations.extend(_write_frames(gold, "gold", "current", settings))
+        gold = build_gold(silver["fact_sales"], settings)
+        locations.extend(_write_frames(gold, "gold", "current", settings))
 
-    if candidate_watermark is not None:
-        update_watermark(engine, settings, candidate_watermark)
-    engine.dispose()
-    LOGGER.info("pipeline_succeeded run_id=%s objects=%s", run_id, len(locations))
-    return locations
+        if candidate_watermark is not None:
+            update_watermark(engine, settings, candidate_watermark)
+        LOGGER.info(
+            "pipeline_succeeded run_id=%s objects=%s elapsed_seconds=%.3f",
+            run_id,
+            len(locations),
+            monotonic() - timer_started_at,
+        )
+        return locations
+    except Exception:
+        LOGGER.exception(
+            "pipeline_failed run_id=%s destination=%s elapsed_seconds=%.3f",
+            run_id,
+            settings.destination,
+            monotonic() - timer_started_at,
+        )
+        raise
+    finally:
+        if engine is not None:
+            engine.dispose()
 
 
 if __name__ == "__main__":

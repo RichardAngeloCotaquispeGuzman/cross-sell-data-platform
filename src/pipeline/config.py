@@ -40,6 +40,7 @@ class Settings:
     source_schema: str = "source"
     control_schema: str = "control"
     pipeline_name: str = "cross_sell_pipeline"
+    log_level: str = "INFO"
     holiday_api_url: str = "https://date.nager.at/api/v3/PublicHolidays"
     holiday_country_code: str = "PE"
     api_timeout_sec: int = 20
@@ -74,6 +75,7 @@ class Settings:
             source_schema=os.getenv("SOURCE_SCHEMA", "source"),
             control_schema=os.getenv("CONTROL_SCHEMA", "control"),
             pipeline_name=os.getenv("PIPELINE_NAME", "cross_sell_pipeline"),
+            log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
             holiday_api_url=os.getenv(
                 "HOLIDAY_API_URL", "https://date.nager.at/api/v3/PublicHolidays"
             ),

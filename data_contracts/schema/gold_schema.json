@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_version": "1.0.0",
+  "contract_version": "2.0.0",
   "layer": "gold",
   "storage": {
     "format": "parquet",
@@ -10,21 +10,91 @@
   },
   "datasets": {
     "sales_summary": {
-      "grain": ["date", "customer_id", "product_id", "category"],
-      "measures": ["quantity", "revenue", "invoice_count"]
+      "grain": [
+        "date",
+        "customer_id",
+        "product_id",
+        "category"
+      ],
+      "measures": [
+        "quantity",
+        "revenue",
+        "invoice_count"
+      ],
+      "columns": {
+        "date": "timestamp",
+        "customer_id": "string",
+        "product_id": "string",
+        "category": "string",
+        "quantity": "number",
+        "revenue": "number",
+        "invoice_count": "integer"
+      }
     },
     "product_pairs": {
-      "grain": ["product_a", "product_b"],
-      "measures": ["invoices_together", "support", "confidence_a_to_b", "confidence_b_to_a", "lift"]
+      "grain": [
+        "product_a",
+        "product_b"
+      ],
+      "measures": [
+        "invoices_together",
+        "support",
+        "confidence_a_to_b",
+        "confidence_b_to_a",
+        "lift"
+      ],
+      "columns": {
+        "product_a": "string",
+        "product_b": "string",
+        "invoices_together": "integer",
+        "support": "number",
+        "confidence_a_to_b": "number",
+        "confidence_b_to_a": "number",
+        "lift": "number"
+      }
     },
     "cross_sell_recommendations": {
-      "grain": ["customer_id", "recommended_product_id"],
-      "required_columns": ["recommendation_rank", "score", "supporting_product_id", "support", "confidence", "lift", "generated_at"],
-      "invariant": "recommended_product_id was not previously purchased in a sale by customer_id"
+      "grain": [
+        "customer_id",
+        "recommended_product_id"
+      ],
+      "invariant": "recommended_product_id was not previously purchased in a sale by customer_id",
+      "columns": {
+        "customer_id": "string",
+        "recommended_product_id": "string",
+        "recommendation_rank": "integer",
+        "score": "number",
+        "supporting_product_id": "string",
+        "support": "number",
+        "confidence": "number",
+        "lift": "number",
+        "generated_at": "timestamp"
+      }
     },
     "customer_360": {
-      "grain": ["customer_id"],
-      "measures": ["invoice_count", "products_purchased", "total_quantity", "total_revenue", "average_invoice_value", "recommended_products_count"]
+      "grain": [
+        "customer_id"
+      ],
+      "measures": [
+        "invoice_count",
+        "products_purchased",
+        "total_quantity",
+        "total_revenue",
+        "average_invoice_value",
+        "recommended_products_count"
+      ],
+      "columns": {
+        "customer_id": "string",
+        "first_purchase_date": "timestamp",
+        "last_purchase_date": "timestamp",
+        "invoice_count": "integer",
+        "products_purchased": "integer",
+        "total_quantity": "number",
+        "total_revenue": "number",
+        "average_invoice_value": "number",
+        "recommended_products_count": "number"
+      }
     }
-  }
+  },
+  "additional_columns": false
 }

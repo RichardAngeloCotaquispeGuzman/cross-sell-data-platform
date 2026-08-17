@@ -1,0 +1,82 @@
+name: pipeline-controlled
+
+on:
+  workflow_dispatch:
+    inputs:
+      destination:
+        description: Destination for this controlled run
+        required: true
+        default: local
+        type: choice
+        options:
+          - local
+          - azure
+      full_refresh:
+        description: Initialize an empty destination from the full source
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 12 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cross-sell-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-pipeline:
+    if: ${{ github.event_name != 'schedule' || vars.ENABLE_SCHEDULED_PIPELINE == 'true' }}
+    runs-on: ubuntu-latest
+    environment: academic-demo
+    env:
+      DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+      AZURE_STORAGE_CONTAINER: lakehouse
+      LOG_LEVEL: INFO
+      RUN_DESTINATION: ${{ github.event_name == 'schedule' && 'azure' || inputs.destination }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements*.txt
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[azure]"
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          test -n "$DATABASE_URL" || {
+            echo "::error::Configure the NEON_DATABASE_URL repository secret."
+            exit 1
+          }
+          if [ "$RUN_DESTINATION" = "azure" ]; then
+            test -n "$AZURE_STORAGE_CONNECTION_STRING" || {
+              echo "::error::Configure AZURE_STORAGE_CONNECTION_STRING."
+              exit 1
+            }
+          fi
+
+      - name: Run full refresh
+        if: ${{ inputs.full_refresh }}
+        run: >-
+          python -m pipeline.main
+          --destination "$RUN_DESTINATION"
+          --full-refresh
+
+      - name: Run incremental
+        if: ${{ !inputs.full_refresh }}
+        run: >-
+          python -m pipeline.main
+          --destination "$RUN_DESTINATION"

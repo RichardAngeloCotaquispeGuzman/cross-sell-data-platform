@@ -26,6 +26,14 @@ def _identifier(value: str) -> str:
     return value
 
 
+def _utc_timestamp(value: datetime) -> pd.Timestamp:
+    """Normalize naive and timezone-aware database values for safe comparison."""
+    timestamp = pd.Timestamp(value)
+    if timestamp.tzinfo is None:
+        return timestamp.tz_localize("UTC")
+    return timestamp.tz_convert("UTC")
+
+
 def create_neon_engine(settings: Settings) -> Engine:
     """Create a pooled SQLAlchemy engine without logging its URL."""
     database_url = settings.require_database_url()
@@ -126,5 +134,5 @@ def update_watermark(
         ).scalar_one_or_none()
         if existing is None:
             raise RuntimeError("Watermark control row does not exist")
-        if existing < candidate:
+        if _utc_timestamp(existing) < _utc_timestamp(candidate):
             raise RuntimeError("Watermark could not be advanced")

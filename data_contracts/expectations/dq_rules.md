@@ -1,7 +1,12 @@
 # Reglas de calidad de datos
 
-Las validaciones se ejecutan antes de construir Silver. Una violación levanta
-`DataQualityError` y evita que el watermark avance.
+Los contratos JSON versionados declaran todas las columnas y tipos lógicos de
+Bronze, Silver y Gold. Se validan antes de escribir cada Parquet: una columna
+faltante, inesperada o con tipo incompatible levanta `DataContractError`.
+
+Las reglas de unicidad, integridad y negocio se ejecutan antes de construir
+Silver. Toda violación hereda de `DataQualityError`, detiene la corrida y evita
+que el watermark avance.
 
 ## Estructura requerida
 

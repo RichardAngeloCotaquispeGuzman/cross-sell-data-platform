@@ -1,30 +1,170 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_version": "1.0.0",
+  "contract_version": "2.0.0",
   "layer": "bronze",
   "storage": {
     "format": "parquet",
     "compression": "snappy",
-    "path": "bronze/{dataset}/run_id={run_id}/part-00000.parquet",
+    "path": "bronze/{dataset}/ingestion_date={YYYY-MM-DD}/run_id={run_id}/part-00000.parquet",
+    "partition_columns": [
+      "ingestion_date",
+      "run_id"
+    ],
     "retention": "immutable"
   },
   "datasets": {
-    "clientes": {"primary_key": ["cd_numero_cliente"]},
-    "destinatarios": {"primary_key": ["cd_destinatario_mercancia"]},
-    "productos": {"primary_key": ["cd_numero_material"]},
-    "jerarquia": {"primary_key": ["cd_numero_material"]},
-    "ventas": {
-      "primary_key": ["nu_factura", "nu_item_factura"],
-      "incremental_column": "ts_movimiento"
+    "clientes": {
+      "primary_key": [
+        "cd_numero_cliente"
+      ],
+      "columns": {
+        "cd_numero_cliente": "string",
+        "nm_nombre_1": "string",
+        "nm_cliente_2": "string",
+        "ds_ciudad": "string",
+        "cd_region": "string",
+        "cd_pais": "string",
+        "ds_direccion": "string",
+        "cd_latitud": "number",
+        "cd_longitud": "number",
+        "ds_barrio": "string",
+        "cd_cnpj": "string",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string"
+      }
     },
-    "feriados": {"natural_key": ["date", "name"]}
+    "destinatarios": {
+      "primary_key": [
+        "cd_destinatario_mercancia"
+      ],
+      "columns": {
+        "cd_destinatario_mercancia": "string",
+        "nm_nombre_1": "string",
+        "nm_cliente_2": "string",
+        "ds_ciudad": "string",
+        "cd_region": "string",
+        "cd_pais": "string",
+        "ds_direccion": "string",
+        "cd_latitud": "number",
+        "cd_longitud": "number",
+        "ds_barrio": "string",
+        "cd_cnpj": "string",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string"
+      }
+    },
+    "productos": {
+      "primary_key": [
+        "cd_numero_material"
+      ],
+      "columns": {
+        "cd_numero_material": "string",
+        "ds_texto_breve_material": "string",
+        "cd_tipo_material": "string",
+        "cd_grupo_mercancias": "string",
+        "cd_unidad_medida_basica": "string",
+        "ct_peso_bruto": "number",
+        "ct_peso_liquido": "number",
+        "ct_volumen": "number",
+        "cd_jerarquia_productos": "string",
+        "nm_marca": "string",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string"
+      }
+    },
+    "jerarquia": {
+      "primary_key": [
+        "cd_numero_material"
+      ],
+      "columns": {
+        "cd_numero_material": "string",
+        "cd_jerarquia_completa": "string",
+        "cd_jerarquia_nivel_1": "string",
+        "ds_jerarquia_nivel_1": "string",
+        "cd_jerarquia_nivel_2": "string",
+        "ds_jerarquia_nivel_2": "string",
+        "cd_jerarquia_nivel_3": "string",
+        "ds_jerarquia_nivel_3": "string",
+        "cd_jerarquia_nivel_4": "string",
+        "ds_jerarquia_nivel_4": "string",
+        "cd_jerarquia_nivel_5": "string",
+        "ds_jerarquia_nivel_5": "string",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string"
+      }
+    },
+    "ventas": {
+      "primary_key": [
+        "nu_factura",
+        "nu_item_factura"
+      ],
+      "incremental_column": "ts_movimiento",
+      "columns": {
+        "nu_factura": "string",
+        "nu_item_factura": "integer",
+        "nu_documento_ventas": "string",
+        "nu_item_doc_ventas": "integer",
+        "fc_movimiento": "date",
+        "ts_movimiento": "timestamp",
+        "cd_solicitante": "string",
+        "cd_destinatario_mercancia": "string",
+        "cd_numero_material": "string",
+        "cd_centro": "string",
+        "cd_deposito": "string",
+        "cd_oficina_ventas": "string",
+        "cd_zona_ventas": "string",
+        "cd_grupo_vendedores": "string",
+        "cd_grupo_clientes": "string",
+        "cd_organizacion_ventas": "string",
+        "cd_canal_distribucion": "string",
+        "cd_unidad_venta": "string",
+        "ct_facturada_signo": "number",
+        "vr_neto_factura_posicion_signo": "number",
+        "vr_venta_soles_sin_flete": "number",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string"
+      }
+    },
+    "feriados": {
+      "natural_key": [
+        "date",
+        "name"
+      ],
+      "columns": {
+        "date": "date",
+        "localName": "string",
+        "name": "string",
+        "countryCode": "string",
+        "global": "boolean",
+        "counties": "array",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string"
+      }
+    }
   },
-  "required_metadata": {
-    "_ingested_at": "timestamp_utc",
-    "_pipeline_run_id": "string",
-    "_source_system": "string",
-    "_source_table": "string",
-    "_extract_type": "full|incremental",
-    "_watermark_value": "nullable_string"
-  }
+  "additional_columns": false
 }
