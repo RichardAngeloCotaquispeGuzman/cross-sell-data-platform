@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -31,3 +32,12 @@ def test_mermaid_sources_have_expected_diagram_types():
     assert Path("architecture/diagrams/incremental-flow.mmd").read_text().startswith(
         "sequenceDiagram"
     )
+
+
+def test_readme_relative_links_resolve_to_repository_files():
+    readme = Path("README.md").read_text(encoding="utf-8")
+    targets = re.findall(r"\]\((?!https?://)([^)#]+)(?:#[^)]*)?\)", readme)
+
+    assert targets
+    for target in targets:
+        assert Path(target).is_file(), f"README link does not exist: {target}"

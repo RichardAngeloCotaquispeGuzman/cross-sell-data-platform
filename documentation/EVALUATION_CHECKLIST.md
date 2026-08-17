@@ -10,7 +10,7 @@ actualizó después de la ejecución real y verificada en Azure.
 | Diseño de arquitectura | 20% | Cumplido | Dos diagramas Mermaid, mapeo físico, ADR, riesgos y observabilidad |
 | Implementación ETL | 20% | Cumplido | Neon + API, Bronze/Silver/Gold, incrementalidad y reglas de asociación |
 | Almacenamiento cloud | 15% | Cumplido | Terraform creó Storage y 15 Parquet fueron verificados directamente en Azure |
-| Automatización | 10% | Cumplido en código | CI verde, ejecución manual y cron protegido por variable de activación |
+| Automatización | 10% | Cumplido | CI de `main` y workflow incremental Azure ejecutados con éxito; cron protegido |
 | Calidad del código | 5% | Cumplido | Ruff, pytest, compilación y contratos v2 tipados y ejecutables |
 
 ## Evaluación conceptual
@@ -47,7 +47,6 @@ outputs seguros, inventario de 15 blobs, conteos, contratos y postura de costos.
 
 Pendiente únicamente para cerrar la entrega:
 
-- Ejecutar el CI final en GitHub después del push.
 - Conservar una captura del crédito/costo desde el portal para la exposición.
 - Revisar y aprobar el plan de destrucción al concluir la demostración.
 
