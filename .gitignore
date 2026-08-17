@@ -1,0 +1,90 @@
+# ================================
+# Python
+# ================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+
+# ================================
+# Virtual environments
+# ================================
+.venv/
+venv/
+env/
+
+# ================================
+# Build / packaging
+# ================================
+build/
+dist/
+pip-wheel-metadata/
+
+# ================================
+# Test / coverage
+# ================================
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ================================
+# Logs / runtime outputs
+# ================================
+logs/
+out/
+tmp/
+*.log
+
+# ================================
+# Jupyter / notebooks
+# ================================
+.ipynb_checkpoints/
+
+# ================================
+# OS / editors
+# ================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ================================
+# Environment / secrets
+# ================================
+.env
+.env.*
+!*.example
+.codex/
+work/
+outputs/
+screenshots/
+conversations/
+
+# ================================
+# Cloud / credentials
+# ================================
+credentials/
+*.key
+*.pem
+
+# ================================
+# Terraform
+# ================================
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+
+# ================================
+# Data (local samples only)
+# ================================
+data/
+data_samples/*
+!data_samples/README.md
+
+# Local infrastructure state
+.azurite/
+__azurite_db_*.json

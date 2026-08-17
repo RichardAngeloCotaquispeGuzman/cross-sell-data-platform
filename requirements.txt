@@ -1,0 +1,11 @@
+# Core runtime (all local and open-source compatible)
+
+pandas>=2.2.0
+pyarrow>=16.0.0
+requests>=2.32.0
+python-dotenv>=1.0.1
+tenacity>=8.3.0
+structlog>=24.1.0
+
+SQLAlchemy>=2.0.0
+psycopg[binary]>=3.2.0

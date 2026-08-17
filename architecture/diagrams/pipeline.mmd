@@ -1,0 +1,15 @@
+flowchart LR
+    N[(Neon PostgreSQL)] --> E[Extracción Python]
+    A[Nager.Date API] --> E
+    W[(control.pipeline_watermarks)] --> E
+    E --> B[Bronze inmutable<br/>Parquet + Snappy]
+    B --> Q[Calidad y transformación]
+    Q --> S[Silver current]
+    S --> G[Gold current]
+    G --> C[Consumo analítico]
+    G --> R[Oportunidades cross-selling]
+    E -. actualiza al finalizar .-> W
+    B & S & G --> D{Destino}
+    D --> L[Local]
+    D --> Z[Azurite]
+    D --> AZ[Azure Blob opcional]

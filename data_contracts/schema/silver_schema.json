@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_version": "1.0.0",
+  "layer": "silver",
+  "storage": {
+    "format": "parquet",
+    "compression": "snappy",
+    "path": "silver/{dataset}/current/part-00000.parquet",
+    "publication_mode": "atomic_snapshot"
+  },
+  "datasets": {
+    "dim_client": {"primary_key": ["cd_numero_cliente"]},
+    "dim_recipient": {"primary_key": ["cd_destinatario_mercancia"]},
+    "dim_product": {"primary_key": ["cd_numero_material"]},
+    "dim_calendar": {
+      "primary_key": ["date"],
+      "required_columns": ["year", "month", "day", "day_of_week", "is_weekend", "is_holiday", "holiday_name"]
+    },
+    "fact_sales": {
+      "primary_key": ["nu_factura", "nu_item_factura"],
+      "foreign_keys": {
+        "cd_solicitante": "dim_client.cd_numero_cliente",
+        "cd_destinatario_mercancia": "dim_recipient.cd_destinatario_mercancia",
+        "cd_numero_material": "dim_product.cd_numero_material",
+        "fc_movimiento": "dim_calendar.date"
+      },
+      "required_columns": [
+        "ts_movimiento",
+        "ct_facturada_signo",
+        "vr_neto_factura_posicion_signo",
+        "vr_venta_soles_sin_flete",
+        "movement_type",
+        "is_weekend",
+        "is_holiday"
+      ],
+      "movement_type_values": ["sale", "return", "zero_value"]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_version": "1.0.0",
+  "layer": "bronze",
+  "storage": {
+    "format": "parquet",
+    "compression": "snappy",
+    "path": "bronze/{dataset}/run_id={run_id}/part-00000.parquet",
+    "retention": "immutable"
+  },
+  "datasets": {
+    "clientes": {"primary_key": ["cd_numero_cliente"]},
+    "destinatarios": {"primary_key": ["cd_destinatario_mercancia"]},
+    "productos": {"primary_key": ["cd_numero_material"]},
+    "jerarquia": {"primary_key": ["cd_numero_material"]},
+    "ventas": {
+      "primary_key": ["nu_factura", "nu_item_factura"],
+      "incremental_column": "ts_movimiento"
+    },
+    "feriados": {"natural_key": ["date", "name"]}
+  },
+  "required_metadata": {
+    "_ingested_at": "timestamp_utc",
+    "_pipeline_run_id": "string",
+    "_source_system": "string",
+    "_source_table": "string",
+    "_extract_type": "full|incremental",
+    "_watermark_value": "nullable_string"
+  }
+}

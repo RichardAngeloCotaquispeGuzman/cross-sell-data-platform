@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_version": "1.0.0",
+  "layer": "gold",
+  "storage": {
+    "format": "parquet",
+    "compression": "snappy",
+    "path": "gold/{dataset}/current/part-00000.parquet",
+    "publication_mode": "atomic_snapshot"
+  },
+  "datasets": {
+    "sales_summary": {
+      "grain": ["date", "customer_id", "product_id", "category"],
+      "measures": ["quantity", "revenue", "invoice_count"]
+    },
+    "product_pairs": {
+      "grain": ["product_a", "product_b"],
+      "measures": ["invoices_together", "support", "confidence_a_to_b", "confidence_b_to_a", "lift"]
+    },
+    "cross_sell_recommendations": {
+      "grain": ["customer_id", "recommended_product_id"],
+      "required_columns": ["recommendation_rank", "score", "supporting_product_id", "support", "confidence", "lift", "generated_at"],
+      "invariant": "recommended_product_id was not previously purchased in a sale by customer_id"
+    },
+    "customer_360": {
+      "grain": ["customer_id"],
+      "measures": ["invoice_count", "products_purchased", "total_quantity", "total_revenue", "average_invoice_value", "recommended_products_count"]
+    }
+  }
+}
