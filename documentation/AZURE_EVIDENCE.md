@@ -51,6 +51,18 @@ Los 15 blobs se descargaron para lectura de footer y todos abrieron como Parquet
 válido. Las rutas Bronze incluyen `ingestion_date=2026-08-17` y el run ID; las
 rutas Silver y Gold publican el snapshot `current`.
 
+## Automatización verificada en GitHub
+
+- Pull Request #1 integrado en `main` con cuatro checks exitosos.
+- CI final de `main`: run `32042726479`, conclusión `success`.
+- Workflow `pipeline-controlled`: run `32043194572`, disparado manualmente.
+- Destino del workflow: Azure; modo incremental.
+- Resultado: `pipeline_no_changes` con 0 ventas nuevas, sin duplicar datos.
+- Los secretos `NEON_DATABASE_URL` y
+  `AZURE_STORAGE_CONNECTION_STRING` están cifrados en GitHub.
+- El cron permanece deshabilitado hasta definir
+  `ENABLE_SCHEDULED_PIPELINE=true`, evitando consumo accidental.
+
 ## Calidad comprobada
 
 - 20 pruebas automáticas aprobadas.
