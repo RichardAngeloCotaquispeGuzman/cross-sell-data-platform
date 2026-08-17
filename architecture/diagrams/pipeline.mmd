@@ -1,15 +1,50 @@
 flowchart LR
-    N[(Neon PostgreSQL)] --> E[Extracción Python]
-    A[Nager.Date API] --> E
-    W[(control.pipeline_watermarks)] --> E
-    E --> B[Bronze inmutable<br/>Parquet + Snappy]
-    B --> Q[Calidad y transformación]
-    Q --> S[Silver current]
-    S --> G[Gold current]
-    G --> C[Consumo analítico]
-    G --> R[Oportunidades cross-selling]
-    E -. actualiza al finalizar .-> W
-    B & S & G --> D{Destino}
-    D --> L[Local]
-    D --> Z[Azurite]
-    D --> AZ[Azure Blob opcional]
+    subgraph SRC["1. Fuentes"]
+        N[("Neon PostgreSQL<br/>5 tablas de negocio")]
+        A["Nager.Date API<br/>feriados de Perú"]
+        W[("control.pipeline_watermarks")]
+    end
+
+    subgraph PY["2. Pipeline Python"]
+        E["Extract<br/>SQL incremental + API retry/cache"]
+        Q{"Data Quality<br/>columnas, PK, FK, tipos"}
+        T["Transform<br/>integración y reglas de negocio"]
+        R["Reglas de asociación<br/>support, confidence, lift"]
+    end
+
+    subgraph MED["3. Lakehouse Parquet + Snappy"]
+        B["Bronze<br/>raw e inmutable<br/>ingestion_date + run_id"]
+        S["Silver current<br/>dimensiones + fact_sales"]
+        G["Gold current<br/>resúmenes + pares +<br/>recomendaciones + customer_360"]
+    end
+
+    subgraph DST["4. Destinos configurables"]
+        L["Disco local<br/>desarrollo"]
+        Z["Azurite + Docker<br/>emulación gratuita"]
+        AZ["Azure Blob Storage<br/>destino cloud"]
+    end
+
+    subgraph OPS["5. Operación"]
+        GH["GitHub Actions<br/>CI + ejecución manual"]
+        TF["Terraform<br/>infraestructura como código"]
+        LOG["Logs JSON<br/>run_id, filas, errores, duración"]
+    end
+
+    N --> E
+    A --> E
+    W --> E
+    E --> B
+    B --> Q
+    Q --> T
+    T --> S
+    S --> R
+    R --> G
+    E -. "actualiza solo después del éxito" .-> W
+
+    B & S & G --> L
+    B & S & G --> Z
+    B & S & G --> AZ
+
+    GH --> E
+    TF -. "aprovisiona RG, Storage Account y container" .-> AZ
+    E & Q & T & R --> LOG

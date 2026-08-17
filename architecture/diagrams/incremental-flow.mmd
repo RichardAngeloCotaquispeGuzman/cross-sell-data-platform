@@ -1,0 +1,30 @@
+sequenceDiagram
+    actor Trigger as Usuario / GitHub Actions
+    participant P as Pipeline Python
+    participant C as control.pipeline_watermarks
+    participant N as Neon source.ventas
+    participant B as Bronze Parquet
+    participant A as Nager.Date API / cache
+    participant S as Silver current
+    participant G as Gold current
+
+    Trigger->>P: Ejecutar pipeline
+    P->>C: Leer last_processed_at
+    C-->>P: Watermark actual
+    P->>N: WHERE ts_movimiento > watermark
+    N-->>P: Solo movimientos nuevos
+
+    alt Hay movimientos nuevos
+        P->>B: Escribir partición ingestion_date + run_id
+        P->>B: Leer todo el histórico Bronze
+        P->>A: Obtener feriados por año
+        A-->>P: API o caché local
+        P->>S: Validar y reemplazar snapshot completo
+        P->>G: Recalcular oportunidades con todo Silver
+        P->>C: Avanzar watermark después del éxito
+        P-->>Trigger: pipeline_succeeded
+    else No hay movimientos nuevos
+        P-->>Trigger: pipeline_no_changes
+    end
+
+    Note over P,C: Si falla una validación o escritura,<br/>el watermark no avanza.

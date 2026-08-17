@@ -10,8 +10,18 @@ import pandas as pd
 from pipeline.config import Settings
 
 
-def parquet_blob_name(layer: str, dataset: str, run_id: str) -> str:
+def parquet_blob_name(
+    layer: str,
+    dataset: str,
+    run_id: str,
+    partition_date: str | None = None,
+) -> str:
     version = "current" if run_id == "current" else f"run_id={run_id}"
+    if layer == "bronze" and partition_date:
+        return (
+            f"{layer}/{dataset}/ingestion_date={partition_date}/"
+            f"{version}/part-00000.parquet"
+        )
     return f"{layer}/{dataset}/{version}/part-00000.parquet"
 
 
@@ -28,9 +38,10 @@ def write_parquet(
     dataset: str,
     run_id: str,
     settings: Settings,
+    partition_date: str | None = None,
 ) -> str:
     """Write one deterministic Parquet object and return its location."""
-    object_name = parquet_blob_name(layer, dataset, run_id)
+    object_name = parquet_blob_name(layer, dataset, run_id, partition_date)
     payload = _parquet_bytes(frame)
 
     if settings.destination == "local":
@@ -70,6 +81,7 @@ def read_local_parquet(
     path = Path(settings.output_dir) / parquet_blob_name(layer, dataset, run_id)
     return pd.read_parquet(path)
 
+
 def read_dataset_history(
     *,
     layer: str,
@@ -77,11 +89,11 @@ def read_dataset_history(
     settings: Settings,
 ) -> pd.DataFrame:
     """Read every immutable run for a dataset from the selected destination."""
-    prefix = f"{layer}/{dataset}/run_id="
     frames: list[pd.DataFrame] = []
     if settings.destination == "local":
         root = Path(settings.output_dir) / layer / dataset
-        paths = sorted(root.glob("run_id=*/part-*.parquet"))
+        # Read the original layout and the date-partitioned layout.
+        paths = sorted(root.glob("**/run_id=*/part-*.parquet"))
         frames = [pd.read_parquet(path) for path in paths]
     else:
         from azure.storage.blob import BlobServiceClient
@@ -91,7 +103,10 @@ def read_dataset_history(
             connection_string = "UseDevelopmentStorage=true"
         service = BlobServiceClient.from_connection_string(connection_string)
         container = service.get_container_client(settings.azure_storage_container)
-        for blob in container.list_blobs(name_starts_with=prefix):
+        dataset_prefix = f"{layer}/{dataset}/"
+        for blob in container.list_blobs(name_starts_with=dataset_prefix):
+            if "/run_id=" not in blob.name or not blob.name.endswith(".parquet"):
+                continue
             payload = container.download_blob(blob.name).readall()
             frames.append(pd.read_parquet(BytesIO(payload)))
     if not frames:

@@ -2,26 +2,33 @@
 
 - Estado: Aceptada
 - Fecha: 2026-08-16
+- Actualizada: 2026-08-17
 
 ## Contexto
 
 La solución debe conservar trazabilidad de origen, ofrecer datos limpios para
 análisis y publicar oportunidades de cross-selling sin perder reproducibilidad.
+La convención del curso solicita particionar por fecha de ingestión o evento.
 
 ## Decisión
 
 Se adopta una arquitectura medallion:
 
-- Bronze conserva extracciones inmutables por `run_id`.
-- Silver publica dimensiones y hechos integrados bajo `current`.
+- Bronze conserva extracciones inmutables bajo
+  `ingestion_date=YYYY-MM-DD/run_id={run_id}`.
+- Silver publica dimensiones y el hecho integrado bajo `current`.
 - Gold publica agregados, pares de afinidad, recomendaciones y cliente 360 bajo
   `current`.
 - Todos los datasets se escriben como Parquet con compresión Snappy.
+- El lector Bronze admite el layout anterior por `run_id` para no invalidar
+  corridas locales existentes.
 
 ## Consecuencias
 
-- Bronze permite auditoría y reconstrucción.
-- `current` simplifica el consumo sin mezclar snapshots anteriores.
+- Bronze cumple la convención de particionado, permite auditoría y facilita una
+  futura política de retención.
+- `current` simplifica el consumo sin mezclar snapshots analíticos anteriores.
 - La deduplicación por factura e ítem protege las reconstrucciones.
-- La solución actual usa un archivo por dataset, adecuado al volumen académico;
-  a gran escala sería necesario particionar y compactar archivos.
+- Silver y Gold son snapshots de un archivo por dataset, adecuado al volumen
+  académico. A gran escala se particionarían por fecha de evento y se aplicarían
+  compactación y catálogo.

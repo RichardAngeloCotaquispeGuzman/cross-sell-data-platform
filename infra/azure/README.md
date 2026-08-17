@@ -1,37 +1,68 @@
 # Azure Blob Storage con Terraform
 
-Esta configuración declara la infraestructura opcional para publicar las capas
-Bronze, Silver y Gold en Azure Blob Storage. El flujo predeterminado del proyecto
-usa Azurite y no tiene costo.
+Esta configuración declara el destino cloud para Bronze, Silver y Gold. El
+desarrollo diario usa Azurite, sin costo Azure.
 
-## Qué crea un `terraform apply`
+## Recursos declarados
 
-- Un Resource Group.
-- Un Storage Account `Standard_LRS`.
-- Un contenedor Blob privado llamado `lakehouse`.
+Un `terraform apply` crea:
 
-La connection string no se imprime como output ni debe guardarse en Git.
+- Resource Group `rg-cross-sell-dev`;
+- Storage Account `StorageV2 Standard_LRS`;
+- container Blob privado `lakehouse`.
 
-## Validación local (no crea recursos)
+La connection string no se imprime como output ni se guarda en Git.
 
-```bash
+## Validación sin crear recursos
+
+~~~bash
+make terraform-init
+make terraform-validate
+~~~
+
+`terraform init` descarga el proveedor y `validate` comprueba sintaxis. Ninguno
+crea infraestructura.
+
+## Plan y despliegue controlado
+
+Autentíquese con Azure CLI y seleccione la suscripción desde su propia terminal.
+No comparta IDs, códigos de dispositivo ni tokens.
+
+~~~bash
+az account show --output table
 cd infra/azure/terraform
-terraform init -backend=false
-terraform fmt -check
-terraform validate
-```
+terraform plan   -var='storage_account_name=crosssellTUFIJO'   -out=/tmp/cross-sell-azure.tfplan
+terraform show /tmp/cross-sell-azure.tfplan
+terraform apply /tmp/cross-sell-azure.tfplan
+~~~
 
-## Despliegue futuro en Azure
+Antes de aplicar debe comprobarse que el plan indique solamente los recursos
+esperados y que no haya destrucciones. Si se modifica código Terraform o pasa
+mucho tiempo, se descarta conceptualmente el plan anterior y se genera uno
+nuevo.
 
-`terraform plan` y `terraform apply` requieren una suscripción y autenticación
-de Azure. Antes de usarlos se debe confirmar que la cuenta mantiene un límite de
-gasto adecuado. Aunque la configuración minimiza costo con `Standard_LRS`, un
-Storage Account real no se considera permanentemente gratuito.
+## Publicación
 
-El nombre del Storage Account debe ser globalmente único:
+El archivo privado debe incluir `DATABASE_URL` y
+`AZURE_STORAGE_CONNECTION_STRING`. Después:
 
-```bash
-terraform plan -var='storage_account_name=crosssellTUFIJO'
-```
+~~~bash
+make run-azure-bootstrap ENV_FILE=/ruta/privada/neon_cross_sell.env
+~~~
 
-No ejecutar `terraform apply` hasta revisar el plan y el control de costos.
+Verifique que el container tenga prefijos `bronze/`, `silver/` y `gold/`.
+
+## Destrucción al finalizar
+
+La destrucción borra recursos cloud y sus blobs. Debe hacerse únicamente con
+aprobación explícita y después de guardar las evidencias del proyecto:
+
+~~~bash
+cd infra/azure/terraform
+terraform plan   -destroy   -var='storage_account_name=crosssellTUFIJO'   -out=/tmp/cross-sell-destroy.tfplan
+terraform show /tmp/cross-sell-destroy.tfplan
+terraform apply /tmp/cross-sell-destroy.tfplan
+~~~
+
+El estado Terraform local es necesario para identificar los recursos. No debe
+borrarse antes de la destrucción ni versionarse en Git.

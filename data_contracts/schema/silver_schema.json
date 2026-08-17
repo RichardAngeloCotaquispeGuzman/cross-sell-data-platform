@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_version": "1.0.0",
+  "contract_version": "2.0.0",
   "layer": "silver",
   "storage": {
     "format": "parquet",
@@ -9,31 +9,155 @@
     "publication_mode": "atomic_snapshot"
   },
   "datasets": {
-    "dim_client": {"primary_key": ["cd_numero_cliente"]},
-    "dim_recipient": {"primary_key": ["cd_destinatario_mercancia"]},
-    "dim_product": {"primary_key": ["cd_numero_material"]},
+    "dim_client": {
+      "primary_key": [
+        "cd_numero_cliente"
+      ],
+      "columns": {
+        "cd_numero_cliente": "string",
+        "nm_nombre_1": "string",
+        "nm_cliente_2": "string",
+        "ds_ciudad": "string",
+        "cd_region": "string",
+        "cd_pais": "string",
+        "ds_direccion": "string",
+        "cd_latitud": "number",
+        "cd_longitud": "number",
+        "ds_barrio": "string",
+        "cd_cnpj": "string"
+      }
+    },
+    "dim_recipient": {
+      "primary_key": [
+        "cd_destinatario_mercancia"
+      ],
+      "columns": {
+        "cd_destinatario_mercancia": "string",
+        "nm_nombre_1": "string",
+        "nm_cliente_2": "string",
+        "ds_ciudad": "string",
+        "cd_region": "string",
+        "cd_pais": "string",
+        "ds_direccion": "string",
+        "cd_latitud": "number",
+        "cd_longitud": "number",
+        "ds_barrio": "string",
+        "cd_cnpj": "string"
+      }
+    },
+    "dim_product": {
+      "primary_key": [
+        "cd_numero_material"
+      ],
+      "columns": {
+        "cd_numero_material": "string",
+        "ds_texto_breve_material": "string",
+        "cd_tipo_material": "string",
+        "cd_grupo_mercancias": "string",
+        "cd_unidad_medida_basica": "string",
+        "ct_peso_bruto": "number",
+        "ct_peso_liquido": "number",
+        "ct_volumen": "number",
+        "cd_jerarquia_productos": "string",
+        "nm_marca": "string",
+        "cd_jerarquia_completa": "string",
+        "cd_jerarquia_nivel_1": "string",
+        "ds_jerarquia_nivel_1": "string",
+        "cd_jerarquia_nivel_2": "string",
+        "ds_jerarquia_nivel_2": "string",
+        "cd_jerarquia_nivel_3": "string",
+        "ds_jerarquia_nivel_3": "string",
+        "cd_jerarquia_nivel_4": "string",
+        "ds_jerarquia_nivel_4": "string",
+        "cd_jerarquia_nivel_5": "string",
+        "ds_jerarquia_nivel_5": "string"
+      }
+    },
     "dim_calendar": {
-      "primary_key": ["date"],
-      "required_columns": ["year", "month", "day", "day_of_week", "is_weekend", "is_holiday", "holiday_name"]
+      "primary_key": [
+        "date"
+      ],
+      "columns": {
+        "date": "timestamp",
+        "year": "integer",
+        "month": "integer",
+        "day": "integer",
+        "day_of_week": "string",
+        "is_weekend": "boolean",
+        "holiday_name": "string",
+        "is_holiday": "boolean"
+      }
     },
     "fact_sales": {
-      "primary_key": ["nu_factura", "nu_item_factura"],
+      "primary_key": [
+        "nu_factura",
+        "nu_item_factura"
+      ],
       "foreign_keys": {
         "cd_solicitante": "dim_client.cd_numero_cliente",
         "cd_destinatario_mercancia": "dim_recipient.cd_destinatario_mercancia",
         "cd_numero_material": "dim_product.cd_numero_material",
         "fc_movimiento": "dim_calendar.date"
       },
-      "required_columns": [
-        "ts_movimiento",
-        "ct_facturada_signo",
-        "vr_neto_factura_posicion_signo",
-        "vr_venta_soles_sin_flete",
-        "movement_type",
-        "is_weekend",
-        "is_holiday"
+      "movement_type_values": [
+        "sale",
+        "return",
+        "zero_value"
       ],
-      "movement_type_values": ["sale", "return", "zero_value"]
+      "columns": {
+        "nu_factura": "string",
+        "nu_item_factura": "integer",
+        "nu_documento_ventas": "string",
+        "nu_item_doc_ventas": "integer",
+        "fc_movimiento": "timestamp",
+        "ts_movimiento": "timestamp",
+        "cd_solicitante": "string",
+        "cd_destinatario_mercancia": "string",
+        "cd_numero_material": "string",
+        "cd_centro": "string",
+        "cd_deposito": "string",
+        "cd_oficina_ventas": "string",
+        "cd_zona_ventas": "string",
+        "cd_grupo_vendedores": "string",
+        "cd_grupo_clientes": "string",
+        "cd_organizacion_ventas": "string",
+        "cd_canal_distribucion": "string",
+        "cd_unidad_venta": "string",
+        "ct_facturada_signo": "number",
+        "vr_neto_factura_posicion_signo": "number",
+        "vr_venta_soles_sin_flete": "number",
+        "_ingested_at": "timestamp",
+        "_pipeline_run_id": "string",
+        "_source_system": "string",
+        "_source_table": "string",
+        "_extract_type": "string",
+        "_watermark_value": "string",
+        "movement_type": "string",
+        "client_nm_nombre_1": "string",
+        "client_nm_cliente_2": "string",
+        "client_ds_ciudad": "string",
+        "client_cd_region": "string",
+        "client_cd_pais": "string",
+        "recipient_nm_nombre_1": "string",
+        "recipient_nm_cliente_2": "string",
+        "recipient_ds_ciudad": "string",
+        "recipient_cd_region": "string",
+        "recipient_cd_pais": "string",
+        "product_ds_texto_breve_material": "string",
+        "product_cd_tipo_material": "string",
+        "product_cd_grupo_mercancias": "string",
+        "product_nm_marca": "string",
+        "product_cd_jerarquia_nivel_1": "string",
+        "product_ds_jerarquia_nivel_1": "string",
+        "product_cd_jerarquia_nivel_2": "string",
+        "product_ds_jerarquia_nivel_2": "string",
+        "product_cd_jerarquia_nivel_3": "string",
+        "product_ds_jerarquia_nivel_3": "string",
+        "is_weekend": "boolean",
+        "is_holiday": "boolean",
+        "holiday_name": "string"
+      }
     }
-  }
+  },
+  "additional_columns": false
 }
