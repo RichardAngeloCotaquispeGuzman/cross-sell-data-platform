@@ -65,7 +65,7 @@ El lector Bronze admite también el layout antiguo por `run_id`.
 
 Los logs se escriben como JSON en la terminal o en el runner:
 
-- `pipeline_started`: identifica `run_id` y destino.
+- `pipeline_started`: identifica `run_id`, entorno y destino.
 - `bronze/dataset rows=N`: conteo publicado.
 - `pipeline_no_changes`: incremental sin novedades.
 - `pipeline_succeeded`: objetos y duración.
@@ -90,7 +90,7 @@ Un fallo cierra la conexión y no adelanta el watermark.
 
 `ci` se ejecuta en push, pull request y manualmente.
 
-`pipeline-manual` requiere:
+`pipeline-controlled` requiere:
 
 - Secret `NEON_DATABASE_URL`.
 - Secret `AZURE_STORAGE_CONNECTION_STRING` solo para destino Azure.

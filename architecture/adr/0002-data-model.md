@@ -8,7 +8,8 @@
 
 La solución debe conservar trazabilidad de origen, ofrecer datos limpios para
 análisis y publicar oportunidades de cross-selling sin perder reproducibilidad.
-La convención del curso solicita particionar por fecha de ingestión o evento.
+El particionado por fecha de ingestión o evento permite organizar el histórico
+y preparar políticas posteriores de consulta y retención.
 
 ## Decisión
 
@@ -25,10 +26,10 @@ Se adopta una arquitectura medallion:
 
 ## Consecuencias
 
-- Bronze cumple la convención de particionado, permite auditoría y facilita una
+- Bronze aplica una convención de particionado, permite auditoría y facilita una
   futura política de retención.
 - `current` simplifica el consumo sin mezclar snapshots analíticos anteriores.
 - La deduplicación por factura e ítem protege las reconstrucciones.
 - Silver y Gold son snapshots de un archivo por dataset, adecuado al volumen
-  académico. A gran escala se particionarían por fecha de evento y se aplicarían
+  actual. A gran escala se particionarían por fecha de evento y se aplicarían
   compactación y catálogo.

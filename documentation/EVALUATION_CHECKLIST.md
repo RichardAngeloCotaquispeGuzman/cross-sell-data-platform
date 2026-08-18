@@ -1,6 +1,6 @@
 # Checklist de evaluación y evidencias
 
-Este documento traduce la rúbrica del profesor a evidencia verificable. Se
+Este documento relaciona los criterios de evaluación con evidencia verificable. Se
 actualizó después de la ejecución real y verificada en Azure.
 
 ## Evaluación técnica
@@ -31,7 +31,7 @@ actualizó después de la ejecución real y verificada en Azure.
 | 4 | Bronze Parquet | Validado | Snappy, metadata, ingestion_date y run_id |
 | 5 | Silver validado | Validado | PK, FK, jerarquía, fechas y números |
 | 6 | Gold no vacío | Validado | 8,838 recomendaciones |
-| 7 | Ejecución local reproducible | Validado | README + Make |
+| 7 | Ejecución local reproducible | Validado | README + Make; requiere una `DATABASE_URL` autorizada |
 | 8 | Pruebas automáticas | Validado | `make test` |
 | 9 | Azurite con Docker | Validado | Capas publicadas en container local |
 | 10 | Loader Azure | Validado | Ejecución real: 15 Parquet y 28,433,426 bytes en Azure Blob |
@@ -45,9 +45,9 @@ La evidencia reproducible se encuentra en
 [`AZURE_EVIDENCE.md`](AZURE_EVIDENCE.md). Incluye el apply de tres recursos,
 outputs seguros, inventario de 15 blobs, conteos, contratos y postura de costos.
 
-Pendiente únicamente para cerrar la entrega:
+## Controles posteriores a la demostración
 
-- Conservar una captura del crédito/costo desde el portal para la exposición.
+- Conservar una captura del crédito/costo desde el portal como evidencia.
 - Revisar y aprobar el plan de destrucción al concluir la demostración.
 
 ## Comandos de verificación

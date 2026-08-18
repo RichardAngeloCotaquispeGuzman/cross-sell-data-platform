@@ -10,9 +10,8 @@ desarrollar y probar sin costo cloud.
 
 ## Diseño lógico
 
-El profesor solicita Mermaid o PlantUML. Se eligió **Mermaid** porque GitHub lo
-renderiza directamente, es gratuito y mantiene el diagrama versionado como
-texto junto al código.
+Los diagramas se mantienen en **Mermaid** porque GitHub los renderiza
+directamente, es gratuito y permite versionarlos como texto junto al código.
 
 ~~~mermaid
 flowchart LR
@@ -138,7 +137,7 @@ comprados. No se usa un modelo de machine learning opaco ni un servicio pagado.
 
 ## Mapeo físico a Azure
 
-| Responsabilidad | Implementación académica | Equivalente administrado a escala |
+| Responsabilidad | Implementación actual | Equivalente administrado a escala |
 |---|---|---|
 | Fuentes | Neon PostgreSQL + Nager.Date | Azure Database/API Management |
 | Ingesta | Python en WSL o GitHub Actions | Azure Functions/Container Apps |
@@ -148,9 +147,9 @@ comprados. No se usa un modelo de machine learning opaco ni un servicio pagado.
 | Orquestación | CLI/Make/GitHub Actions | Azure Data Factory |
 | Observabilidad | Logs JSON de aplicación | Azure Monitor |
 
-La rúbrica permite Gold en Parquet cuando se adopta una decisión lakehouse.
-Usar servicios administrados adicionales no aportaría valor al volumen
-académico y podría consumir el crédito de Azure innecesariamente.
+Gold se publica en Parquet como parte de la arquitectura lakehouse adoptada.
+Usar servicios administrados adicionales no aportaría valor al volumen actual
+y generaría costos cloud innecesarios.
 
 ## Persistencia, particionado e idempotencia
 
@@ -193,6 +192,6 @@ runner y no requieren Azure Monitor.
 | Relaciones huérfanas | Validaciones de cliente, destinatario, producto y jerarquía |
 | Pérdida de datos incremental | Watermark avanza solo al terminar con éxito |
 | Secreto expuesto | Archivo privado, GitHub Secrets y `.gitignore` |
-| Ejecución cloud no deseada | Cron protegido por variable y `terraform apply` con aprobación |
+| Ejecución cloud no deseada | Cron protegido por variable y `terraform apply` manual tras revisar el plan |
 | Crecimiento de Bronze | Partición por fecha y futura política de retención |
 | Preferencias antiguas | Futuro filtro temporal o ponderación por recencia |

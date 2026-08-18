@@ -82,10 +82,8 @@ def build_silver(
     """Validate and build the five proposed Silver datasets."""
     validate_sources(clientes, destinatarios, productos, jerarquia, ventas)
 
-    dim_client = clientes.drop_duplicates("cd_numero_cliente").copy()
-    dim_recipient = destinatarios.drop_duplicates(
-        "cd_destinatario_mercancia"
-    ).copy()
+    dim_client = clientes.copy()
+    dim_recipient = destinatarios.copy()
     dim_product = productos.merge(
         jerarquia,
         on="cd_numero_material",

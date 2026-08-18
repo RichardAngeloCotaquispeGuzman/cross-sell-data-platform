@@ -50,6 +50,21 @@ def test_holiday_api_uses_cache(tmp_path: Path):
     assert first.loc[0, "name"] == "Independence Day"
 
 
+def test_settings_loads_project_environment(monkeypatch, tmp_path: Path):
+    monkeypatch.delenv("PROJECT_ENV", raising=False)
+    env_file = tmp_path / "pipeline.env"
+    env_file.write_text("PROJECT_ENV=QA\n", encoding="utf-8")
+
+    settings = Settings.from_env(env_file)
+
+    assert settings.project_env == "qa"
+
+
+def test_settings_rejects_empty_project_environment():
+    with pytest.raises(ValueError, match="PROJECT_ENV"):
+        Settings(database_url="", project_env="")
+
+
 def test_candidate_watermark_uses_latest_timestamp():
     sales = pd.DataFrame(
         {

@@ -14,8 +14,8 @@
 - El contenedor Azure declarado por Terraform es privado.
 - Se bloquea el acceso público por objeto y se exige TLS 1.2.
 - La connection string no se declara como output Terraform.
-- La red pública y shared key permanecen habilitadas como compromiso académico
-  para ejecutar desde WSL; producción debería usar identidad administrada,
+- La red pública y shared key permanecen habilitadas para permitir ejecuciones
+  controladas desde WSL; producción debería usar identidad administrada,
   RBAC y restricciones de red.
 
 ## Base de datos
@@ -28,7 +28,8 @@
 ## GitHub Actions
 
 - `ci.yml` no usa secretos y es seguro para pull requests.
-- `pipeline.yml` solo corre manualmente y usa el environment `academic-demo`.
+- `pipeline.yml` usa el environment `academic-demo` y referencia secretos solo
+  durante ejecuciones controladas.
 - El cron está declarado, pero el job programado requiere la variable
   `ENABLE_SCHEDULED_PIPELINE=true`; sin ella queda omitido.
 - No deben ejecutarse pipelines con secretos en pull requests de terceros.
