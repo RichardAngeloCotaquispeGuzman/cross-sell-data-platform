@@ -77,6 +77,15 @@ def test_quality_rejects_orphan_customer():
         validate_sources(*frames[:5])
 
 
+def test_quality_rejects_duplicate_customer_key():
+    frames = list(source_frames())
+    duplicate = frames[0].iloc[[0]].copy()
+    frames[0] = pd.concat([frames[0], duplicate], ignore_index=True)
+
+    with pytest.raises(DataQualityError, match="duplicate key"):
+        validate_sources(*frames[:5])
+
+
 def test_pairs_and_recommendations_are_explainable():
     fact = pd.DataFrame(
         {

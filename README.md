@@ -1,6 +1,6 @@
 # Cross-Sell Data Platform
 
-Pipeline académico end-to-end de Ingeniería de Datos que integra ventas
+Pipeline end-to-end de Ingeniería de Datos que integra ventas
 sintéticas desde Neon PostgreSQL y feriados desde Nager.Date. Construye un
 lakehouse Bronze/Silver/Gold en Parquet y genera oportunidades explicables de
 cross-selling según el comportamiento histórico de los clientes.
@@ -165,7 +165,7 @@ Silver y Gold; se validan automáticamente antes de publicar cada Parquet. Los l
 con timestamp UTC, nivel, `run_id`, filas, duración y stack trace ante fallos.
 
 El CI ejecuta calidad Python y Terraform en cada push, pull request o ejecución
-manual. El workflow `pipeline-manual` puede ejecutar el pipeline mediante
+manual. El workflow `pipeline-controlled` puede ejecutar el pipeline mediante
 GitHub Secrets. El cron está declarado, pero las corridas programadas se omiten mientras la
 variable de repositorio `ENABLE_SCHEDULED_PIPELINE` no sea `true`.
 

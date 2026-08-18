@@ -113,7 +113,12 @@ def run(argv: list[str] | None = None) -> list[str]:
         + "-"
         + uuid4().hex[:8]
     )
-    LOGGER.info("pipeline_started run_id=%s destination=%s", run_id, settings.destination)
+    LOGGER.info(
+        "pipeline_started run_id=%s project_env=%s destination=%s",
+        run_id,
+        settings.project_env,
+        settings.destination,
+    )
 
     engine = None
     try:

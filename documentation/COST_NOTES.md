@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-- Neon: plan gratuito del proyecto académico.
+- Neon: plan gratuito utilizado por el proyecto.
 - Nager.Date: API pública gratuita.
 - Python, Docker, Azurite y Terraform: herramientas gratuitas.
 - Azure real: Storage Standard LRS desplegado para la demostración.

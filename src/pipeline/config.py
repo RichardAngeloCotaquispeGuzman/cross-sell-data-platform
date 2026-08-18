@@ -37,6 +37,7 @@ class Settings:
     """Validated runtime settings loaded from environment variables."""
 
     database_url: str = field(repr=False)
+    project_env: str = "dev"
     source_schema: str = "source"
     control_schema: str = "control"
     pipeline_name: str = "cross_sell_pipeline"
@@ -56,6 +57,8 @@ class Settings:
     max_recommendations_per_customer: int = 10
 
     def __post_init__(self) -> None:
+        if not self.project_env.strip():
+            raise ValueError("PROJECT_ENV must not be empty")
         if self.destination not in _ALLOWED_DESTINATIONS:
             choices = ", ".join(sorted(_ALLOWED_DESTINATIONS))
             raise ValueError(f"DESTINATION must be one of: {choices}")
@@ -72,6 +75,7 @@ class Settings:
         _load_environment(env_file)
         return cls(
             database_url=(os.getenv("DATABASE_URL") or os.getenv("NEON_DATABASE_URL", "")),
+            project_env=os.getenv("PROJECT_ENV", "dev").strip().lower(),
             source_schema=os.getenv("SOURCE_SCHEMA", "source"),
             control_schema=os.getenv("CONTROL_SCHEMA", "control"),
             pipeline_name=os.getenv("PIPELINE_NAME", "cross_sell_pipeline"),

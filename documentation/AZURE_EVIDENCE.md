@@ -54,7 +54,7 @@ rutas Silver y Gold publican el snapshot `current`.
 ## Automatización verificada en GitHub
 
 - Pull Request #1 integrado en `main` con cuatro checks exitosos.
-- CI final de `main`: run `32042726479`, conclusión `success`.
+- CI del despliegue verificado en `main`: run `32042726479`, conclusión `success`.
 - Workflow `pipeline-controlled`: run `32043194572`, disparado manualmente.
 - Destino del workflow: Azure; modo incremental.
 - Resultado: `pipeline_no_changes` con 0 ventas nuevas, sin duplicar datos.
@@ -65,7 +65,7 @@ rutas Silver y Gold publican el snapshot `current`.
 
 ## Calidad comprobada
 
-- 20 pruebas automáticas aprobadas.
+- 24 pruebas automáticas aprobadas.
 - Ruff y compilación Python aprobados.
 - Terraform format y validate aprobados.
 - Clave factura-item sin duplicados.

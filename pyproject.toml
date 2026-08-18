@@ -14,7 +14,7 @@ requires-python = ">=3.10"
 license = { text = "MIT" }
 
 authors = [
-  { name = "BSG Institute" }
+  { name = "Richard Angelo Cotaquispe Guzman" }
 ]
 
 keywords = [
@@ -41,6 +41,7 @@ classifiers = [
 # Core dependencies (runtime)
 # =========================================================
 dependencies = [
+  "numpy>=1.26.0",
   "pandas>=2.2.0",
   "pyarrow>=16.0.0",
   "requests>=2.32.0",
